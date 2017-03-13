@@ -36,8 +36,10 @@ object Scanner {
   def apply(reader: LineNumberReader)(implicit config: Config): Scanner = new Scanner {
     private[this] val tokenizers = reader.tokenizers(config).buffered
     private[this] def tokenizer() = {
-      while (tokenizers.headOption.exists(st => !st.hasMoreTokens)) tokenizers.next()
-      tokenizers.headOption
+      while (tokenizers.nonEmpty && !tokenizers.head.hasMoreTokens) tokenizers.next()
+      when(tokenizers.nonEmpty)(tokenizers.head)
+      // while (tokenizers.headOption.exists(st => !st.hasMoreTokens)) tokenizers.next()
+      // tokenizers.headOption
     }
     override def lineNumber() = reader.getLineNumber
     override def tillDelimiter(delimiter: String) = tokenizer().get.nextToken(delimiter)

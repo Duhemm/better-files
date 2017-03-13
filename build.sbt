@@ -1,10 +1,10 @@
-val username = "pathikrit"
+val username = "Duhemm"
 val repo = "better-files"
 
 lazy val commonSettings = Seq(
   organization := s"com.github.$username",
-  scalaVersion := "2.12.1",
-  crossScalaVersions := Seq("2.12.1"),
+  scalaVersion := "2.11.8",
+  crossScalaVersions := Seq("2.11.8"),
   crossVersion := CrossVersion.binary,
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint"),
   scalacOptions ++= Seq(
@@ -29,53 +29,57 @@ lazy val commonSettings = Seq(
   updateImpactOpenBrowser := false
 )
 
-lazy val core = (project in file("core"))
+lazy val core = (crossProject(JVMPlatform, NativePlatform) in file("core"))
   .settings(commonSettings: _*)
   .settings(publishSettings: _*)
   .settings(
     name := repo,
     description := "Simple, safe and intuitive I/O in Scala"
   )
+lazy val coreJVM    = core.jvm
+lazy val coreNative = core.native
 
-lazy val akka = (project in file("akka"))
-  .settings(commonSettings: _*)
-  .settings(publishSettings: _*)
-  .settings(
-    name := s"$repo-akka",
-    description := "Reactive file watcher using Akka actors",
-    libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.16"
-  )
-  .dependsOn(core % "test->test;compile->compile")
+// lazy val akka = (project in file("akka"))
+//   .settings(commonSettings: _*)
+//   .settings(publishSettings: _*)
+//   .settings(
+//     name := s"$repo-akka",
+//     description := "Reactive file watcher using Akka actors",
+//     libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.16"
+//   )
+//   .dependsOn(core % "test->test;compile->compile")
+//
+// lazy val shapelessScanner = (project in file("shapeless"))
+//   .settings(commonSettings: _*)
+//   .settings(noPublishSettings: _*)
+//   .settings(
+//     name := s"shapeless-scanner",
+//     description := "Shapeless Scanner",
+//     libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.2"
+//   )
+//   .dependsOn(core % "test->test;compile->compile")
 
-lazy val shapelessScanner = (project in file("shapeless"))
-  .settings(commonSettings: _*)
-  .settings(noPublishSettings: _*)
-  .settings(
-    name := s"shapeless-scanner",
-    description := "Shapeless Scanner",
-    libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.2"
-  )
-  .dependsOn(core % "test->test;compile->compile")
+// lazy val benchmarks = (project in file("benchmarks"))
+//   .settings(commonSettings: _*)
+//   .settings(noPublishSettings: _*)
+//   .settings(
+//     name := s"$repo-benchmarks"
+//   )
+//   .dependsOn(core % "test->test;compile->compile")
 
-lazy val benchmarks = (project in file("benchmarks"))
-  .settings(commonSettings: _*)
-  .settings(noPublishSettings: _*)
-  .settings(
-    name := s"$repo-benchmarks"
-  )
-  .dependsOn(core % "test->test;compile->compile")
-
-lazy val root = (project in file("."))
+lazy val root = (crossProject(JVMPlatform, NativePlatform) in file("."))
   .settings(commonSettings: _*)
   .settings(docSettings: _*)
   .settings(noPublishSettings: _*)
   .settings(releaseSettings: _*)
-  .aggregate(core, akka, shapelessScanner)
+  .aggregate(core) //, akka, shapelessScanner)
+lazy val rootJVM    = root.jvm
+lazy val rootNative = root.native
 
 import UnidocKeys._
 lazy val docSettings = unidocSettings ++ site.settings ++ ghpages.settings ++ Seq(
   autoAPIMappings := true,
-  unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(core, akka),
+  // unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(core/*, akka*/),
   SiteKeys.siteSourceDirectory := file("site"),
   site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "latest/api"),
   git.remoteRepo := s"git@github.com:$username/$repo.git"
