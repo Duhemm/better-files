@@ -29,6 +29,8 @@ lazy val commonSettings = Seq(
   updateImpactOpenBrowser := false
 )
 
+lazy val showMissingDeps = taskKey[Unit]("Show missing native deps in a readable way.")
+
 lazy val core = (crossProject(JVMPlatform, NativePlatform) in file("core"))
   .settings(commonSettings: _*)
   .settings(publishSettings: _*)
@@ -36,6 +38,24 @@ lazy val core = (crossProject(JVMPlatform, NativePlatform) in file("core"))
     name := repo,
     description := "Simple, safe and intuitive I/O in Scala"
   )
+  .nativeSettings(showMissingDeps := {
+    import scala.scalanative.sbtplugin.ScalaNativePluginInternal.nativeMissingDependencies
+    val log     = streams.value.log
+    val missing = (nativeMissingDependencies in Compile).value
+    val listed  = collection.mutable.Set.empty[String]
+
+    if (missing.isEmpty) log.success("Yay!")
+    else {
+      missing.foreach { m =>
+        val clss = m.split("::")(0)
+        if (!listed(clss)) {
+          listed += clss
+          log.error(m)
+        }
+      }
+      error(listed.size + " classes & functions missing.")
+    }
+  })
 lazy val coreJVM    = core.jvm
 lazy val coreNative = core.native
 
